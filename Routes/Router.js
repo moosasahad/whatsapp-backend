@@ -8,5 +8,9 @@ router
 
     .post('/',trycatch(logincontroller.otpgenarating))  
     .post('/send-otp',trycatch(logincontroller.otpverification))
-    .post('/userdetails',Authmidilware,trycatch(logincontroller.adduserdetails))
+    .post('/adduserdetails',Authmidilware,trycatch(logincontroller.adduserdetails))
+    .post('/savecontact',Authmidilware,trycatch(logincontroller.savecontacts))
+    .get('/getallcontatc',Authmidilware,trycatch(logincontroller.getallcontacts))
+
+
 module.exports=router
