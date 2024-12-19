@@ -12,12 +12,10 @@ const otpgenarating = async (req, res) => {
   const { number } = req.body;
   console.log("number in db",number)
 
-  // Validate the input
   if (!number) {
     return res.status(404).json({status:false, message: "Number not found"});
   }
 
-  // Send OTP
   const response = await client.verify
     .services(process.env.serviceSID)
     .verifications.create({
@@ -62,16 +60,45 @@ const otpverification = async (req, res) => {
         code: otp,
       });
 
-      
-      
 
     console.log("otp res", response);
     console.log("userse",userse._id);
 
     if (response.valid) {
+
+      const findusercontact = await contact.findOne({ 
+        userid: userse._id, 
+        number: userNumber 
+    });
+    if(!findusercontact){
+      const addcontactcollection = new contact({
+        userid:userse._id,
+          name:"You my",
+          number:userNumber,
+        profileimage:userse._id,
+  
+      })
+      const savecollection = await addcontactcollection.save()
+      console.log("otp res", response);
+      console.log("userse",userse._id);
+        const usertoken = jwt.sign({id:userse._id,number:userse.number,contactid:savecollection._id},process.env.JWT_SECRET_KEY,{ expiresIn: "30d" })
+  
+      res.cookie('token',usertoken,{
+        httpOnly:true,
+        secure:false,
+        sameSite:"lax",
+        maxAge:30*1*24*60*60*1000
+  
+      })
+      console.log("usertoken",usertoken)
+        res.status(200).json({ message: "Welcome verfication sucsses" , data:response, token:usertoken,usercontact:savecollection });
+    }
+    
+
+
       console.log("otp res", response);
     console.log("userse",userse._id);
-      const usertoken = jwt.sign({id:userse._id,number:userse.number},process.env.JWT_SECRET_KEY,{ expiresIn: "30d" })
+      const usertoken = jwt.sign({id:userse._id,number:userse.number,contactid:findusercontact._id},process.env.JWT_SECRET_KEY,{ expiresIn: "30d" })
 
     res.cookie('token',usertoken,{
       httpOnly:true,
@@ -117,49 +144,32 @@ const getspacificuser = async (req,res)=>{
 }
 
 
-// ---------------- save contact details under the user --------------------- //
+// ---------------- save contact details  --------------------- //
 
 
 const savecontacts = async (req,res,)=>{
+
   const {name,number} = req.body;
   const findenumberuser = await user.findOne({number:number})
+
   if(!findenumberuser){
-    return res.status(403).json({status:true,message:"this numbe not have a whatsapp acoount pleas invte",number:number})
+    return res.status(403).json({status:false,message:"this numbe not have a whatsapp acoount pleas invte",number:number})
   }
-  const finduser = await contact.findOne({userid:req.user.id})
-  console.log("findcontact",finduser);
-  if(!finduser){
-    const addcontactcollection = new contact({
-      userid:req.user.id,
-      contacts:[{
-        name:name,
-        number:number,
-      profileimage:findenumberuser._id,
+  const findcontact = await contact.findOne({number:number})
+  if(findcontact){
+    return res.status(403).json({status:false,message:"this number already you saved your system",number:number})
+  }
+  console.log("contatcs",findcontact)
+  const addcontactcollection = new contact({
+          userid:req.user.id,
+            name:name,
+            number:number,
+          profileimage:findenumberuser._id,
+    
+        })
+        const savecollection = await addcontactcollection.save()
 
-      }]
-    })
-    const savecollection = await addcontactcollection.save()
-    return res.status(200).json({status:true,message:"creat a new collection and number saved.",data:savecollection})
-  }else{
-    console.log("hfgsdhf",finduser);
-    const findenumber = finduser.contacts.find(item=>item.number==number)
-    console.log("hfgsdhf",findenumber);
-   
-    console.log("hjdgfdgsfjhsdgfgdjgj..........",findenumberuser)
-    if(findenumber){
-      return res.status(403).json({status:true,message:"this number already you saved your system",number:number})
-    }
-    console.log("profile image ",findenumberuser._id)
-     finduser.contacts.push({
-      name:name,
-      number:number,
-      profileimage:findenumberuser._id,
-    }) 
-    await finduser.save();
-  console.log("Contact added successfully");
-  return res.status(200).json({status: true,message: "Contact added successfully",contact: { name, number }});
-
-}
+        return res.status(200).json({status:true,message:"number saved.",data:savecollection})
 
 }
 
@@ -168,7 +178,7 @@ const savecontacts = async (req,res,)=>{
 
 
 const getallcontacts = async (req,res)=>{
-  const contatctes = await contact.findOne({userid:req.user.id}).populate("contacts.profileimage",'profileimage');
+  const contatctes = await contact.find({userid:req.user.id}).populate("profileimage",'profileimage _id');
   console.log("mesage",contatctes);
   
   res.status(200).json({status:true,message:"get all contatcs",data:contatctes})

@@ -2,8 +2,8 @@
 const mongoose = require('mongoose')
 
 const sendMessageSchema = new mongoose.Schema({
-    senderid: { type: mongoose.Schema.ObjectId, ref: "User", required: true },
-    reciverid: { type: mongoose.Schema.ObjectId, required: true,ref: "User" },
+    senderid: { type: mongoose.Schema.ObjectId, ref: "Contact", required: true },
+    reciverid: { type: mongoose.Schema.ObjectId, ref: "Contact" , required: true},
     message: [{
         text: { type: String },
         image: { type: String },

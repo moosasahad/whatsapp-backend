@@ -22,6 +22,8 @@ router
 
     .post('/sendmessage', Authmidilware,messagefile.single('files'),trycatch(messagecontroller.message))
     .get('/getmessaeg/:reciverid', Authmidilware,trycatch(messagecontroller.getmessages))
+    .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
+
 
 
 

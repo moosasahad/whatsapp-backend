@@ -25,7 +25,8 @@
 
 const messageschema = require("../model/message");
 const contact = require("../model/ContactSchema");
-const path = require('path')
+const path = require('path');
+const mongoose = require("mongoose");
 
 const message = async (req, res) => {
     console.log("outside")
@@ -34,6 +35,10 @@ const message = async (req, res) => {
     let images 
     
     const { message, receiver } = req.body;
+    const sender = receiver == req.user.contactid
+    if(sender){
+      return res.status(404).json({status:false,message:"receiver and snder is same"})
+    }
     const files = req.file?.path;
     console.log("dghsgfs",files);
     
@@ -60,28 +65,25 @@ const message = async (req, res) => {
   
   if ( !receiver) {
     return res
-      .status(404)
-      .json({
-        status: false,
-        message: "receiver not found",
-        data: { message, receiver },
-      });
+      .status(404).json({status: false, message: "receiver not found",data: { message, receiver },});
   }
   const contacts = await contact.findOne({ userid: req.user.id });
 
-  const findid = contacts.contacts.find((value) => {
-    return value._id == receiver;
-  });
-  if (!findid) {
-    return res
-      .status(404)
-      .json({ status: false, message: "invalid receiver", data: receiver });
-  }
+  // const findid = contacts.contacts.find((value) => {
+  //   return value._id == receiver;
+  // });
+  // console.log("jsahdjshad",findid);
+  
+  // if (!findid) {
+  //   return res
+  //     .status(404)
+  //     .json({ status: false, message: "invalid receiver", data: receiver });
+  // }
   const messageer = await messageschema.find({ senderid: req.user.id });
 
   if (!messageer) {
     const savefirstmessage = new messageschema({
-      senderid: req.user.id,
+      senderid: req.user.contactid,
       reciverid: receiver,
       message: [
         {
@@ -103,7 +105,7 @@ const message = async (req, res) => {
 
     if (!sender) {
       const savefirstmessage = new messageschema({
-        senderid: req.user.id,
+        senderid: req.user.contactid,
         reciverid: receiver,
         message: [
           {
@@ -133,12 +135,12 @@ const message = async (req, res) => {
 };
 const getmessages = async (req, res) => {
   const reciverid = req.params.reciverid;
-  const senderid = req.user.id;
+  const senderid = req.user.contactid;
 
   const messages = await messageschema.findOne({
     reciverid,
     senderid,
-  });
+  }).populate("reciverid").populate("senderid")
 
     const reciever =(await contact.findOne({ userid: senderid }).populate("contacts.profileimage",'profileimage'))?.contacts
         ?.find((con) => con._id == reciverid)
@@ -153,7 +155,47 @@ const getmessages = async (req, res) => {
     });
 };
 
+
+
+const messagesenders = async (req,res)=>{
+  const usercontactid = req.user.contactid
+//   const findMessages = await messageschema.find({
+//     $or: [
+//         { reciverid: usercontactid },
+//         { senderid: usercontactid }
+//     ]
+// });
+const findAndAggregate = await messageschema.aggregate([
+  {
+    $match: {
+      $or: [
+        { reciverid: new mongoose.Types.ObjectId(usercontactid) },
+        { senderid: new mongoose.Types.ObjectId(usercontactid) }
+      ]
+    }
+  },
+  {
+    $group: {
+      _id: "$reciverid" 
+    }
+  },
+  {
+    $lookup: {
+      from: "contacts", 
+      localField: "_id", 
+      foreignField: "_id", 
+      as: "reciverDetails"
+    }
+  }
+]);
+
+  res.status(200).json({status:true,messages:"message senders",data:findAndAggregate})
+
+
+}
+
 module.exports = {
   message,
   getmessages,
+  messagesenders,
 };
