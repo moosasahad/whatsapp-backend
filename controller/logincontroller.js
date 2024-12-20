@@ -115,6 +115,18 @@ const otpverification = async (req, res) => {
 
 };
 
+// ------------------------ logout controller ---------------------------------- // 
+
+const logout = async (req,res)=>{
+  res.clearCookie("token",{
+    httpOnly:true,
+    secure:false,
+    sameSite:"lax"    
+})
+
+res.status(200).json({status:true,message:"Logout successfully"})
+}
+
 // ------------------ add user details in user profile ---------------- //
 
 
@@ -123,6 +135,9 @@ const adduserdetails = async(req,res)=>{
   const image = req.file?.path
   const id = req.user.id
   console.log("cuurentuser",req.body)
+  if(!name|| !image){
+    return res.status(400).json({status:false,message:"input are emty"})
+  }
 
   const userse = await user.findOne({_id:id})
   userse.name=name;
@@ -155,7 +170,7 @@ const savecontacts = async (req,res,)=>{
   if(!findenumberuser){
     return res.status(403).json({status:false,message:"this numbe not have a whatsapp acoount pleas invte",number:number})
   }
-  const findcontact = await contact.findOne({number:number})
+  const findcontact = await contact.findOne({userid:req.user.id,number:number})
   if(findcontact){
     return res.status(403).json({status:false,message:"this number already you saved your system",number:number})
   }
@@ -180,15 +195,30 @@ const savecontacts = async (req,res,)=>{
 const getallcontacts = async (req,res)=>{
   const contatctes = await contact.find({userid:req.user.id}).populate("profileimage",'profileimage _id');
   console.log("mesage",contatctes);
+  const filtercontact = contatctes.filter((item)=>item.number!==req.user.number)
   
-  res.status(200).json({status:true,message:"get all contatcs",data:contatctes})
+  res.status(200).json({status:true,message:"get all contatcs",data:filtercontact})
+}
+
+const updateprofile = async (req,res)=>{
+  const {name,about} = req.body;
+  const image = req.file?.path;
+  const userid = req.user.id;
+  console.log({name,about,image},req.body)
+
+  const finduser =await user.findOne({_id:userid})
+  console.log("finduser",finduser)
+
+  res.send("jhjkfdshfkjsdh")
 }
 
 module.exports ={
   otpgenarating,
   otpverification,
+  logout,
   adduserdetails,
   savecontacts,
   getallcontacts,
   getspacificuser,
+  updateprofile,
 };
