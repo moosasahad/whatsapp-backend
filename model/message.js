@@ -7,6 +7,7 @@ const sendMessageSchema = new mongoose.Schema({
     reciverid: { type: mongoose.Schema.ObjectId, ref: "Contact" , required: true},
     recivernumber:{ type: String },
     message: [{
+        sendernumber:{ type: String },
         text: { type: String },
         image: { type: String },
         audio: { type: String },

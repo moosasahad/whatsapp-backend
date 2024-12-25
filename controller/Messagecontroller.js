@@ -29,7 +29,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 
 const message = async (req, res) => {
-  console.log("outside");
+  console.log("outside",req.body);
   let audios;
   let videos;
   let images;
@@ -57,7 +57,7 @@ const message = async (req, res) => {
     const fileExtension = path.extname(files).toLowerCase(); // Ensure lowercase comparison
     console.log("File extension:", fileExtension, files);
 
-    // Check for image formats
+   
     if (
       fileExtension === ".png" ||
       fileExtension === ".jpg" ||
@@ -106,6 +106,7 @@ const message = async (req, res) => {
       recivernumber: receivernumber,
       message: [
         {
+          sendernumber: req.user.number,
           text: message,
           image: images,
           audio: audios,
@@ -119,6 +120,7 @@ const message = async (req, res) => {
       .json({ message: "first message sended", data: savesavefirstmessage });
   } else {
     messageer.message.push({
+      sendernumber: req.user.number,
       text: message,
       image: images,
       audio: audios,
@@ -153,19 +155,58 @@ const message = async (req, res) => {
 //--------------------------- getmessage ------------------------------//
 
 const getmessages = async (req, res) => {
-  const sendernumber = req.user.number;
-  console.log("recivernumber parems", req.params.recivernumber);
+  // console.log("sdfghj")
+  // const sendernumber = req.user.number;
+  // console.log("recivernumber parems", req.params.recivernumber);
 
-  const recivernumber = req.params.recivernumber;
-  console.log("recivernumber", recivernumber);
+  // const recivernumber = req.params.recivernumber;
+  // console.log("recivernumber", recivernumber);
 
-  const messages = await messageschema
-    .findOne({ sendernumber: sendernumber, recivernumber: recivernumber })
-    .populate("reciverid")
-    .populate("senderid");
+  // const messages = await messageschema
+  //   .findOne({ sendernumber: sendernumber, recivernumber: recivernumber })
+  //   .populate({
+  //     path: "reciverid",
+
+  //     populate: {
+  //       path: "profileimage",
+  //       select: "profileimage",
+  //     },
+  //   })           
+  //   .populate({
+  //     path: "senderid",
+
+  //     populate: {
+  //       path: "profileimage",
+  //       select: "profileimage",
+  //     },
+    // })
 
   // const reciever =(await contact.findOne({ userid: senderid }).populate("contacts.profileimage",'profileimage'))?.contacts
   //     ?.find((con) => con._id == reciverid)
+
+  const recivernumber = req.params.recivernumber;
+
+  const messages = await messageschema.findOne({_id:recivernumber}) 
+  .populate({
+        path: "reciverid",
+  
+        populate: {
+          path: "profileimage",
+          select: "profileimage",
+        },
+      })           
+      .populate({
+        path: "senderid",
+  
+        populate: {
+          path: "profileimage",
+          select: "profileimage",
+        }, 
+      })
+  
+  
+
+
 
   res
     .status(200)
@@ -250,6 +291,11 @@ const searchcontatcs = async (req, res) => {
       { number: { $regex: query, $options: "i" } },
     ],
   });
+  
+  if(contacts==[]){
+   return res.status(400).json({status:false,message:"number not found",})
+  }
+  console.log("asndmbas",contacts)
 
   if (contacts.length === 0) {
     return res.status(404).json({ message: "No contacts found." });

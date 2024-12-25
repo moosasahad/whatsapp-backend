@@ -27,7 +27,7 @@ router
     .post('/sendmessage', Authmidilware,messagefile.single('files'),trycatch(messagecontroller.message))
     .get('/getmessaeg/:recivernumber', Authmidilware,trycatch(messagecontroller.getmessages))
     .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
-    .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))
+    .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
 
 
     // ---------------------------- group --------------------- //
