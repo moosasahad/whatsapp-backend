@@ -59,6 +59,7 @@ const getgroups = async (req, res) => {
 
 const sendmessageongroup = async (req, res) => {
   const { groupid, message } = req.body;
+  console.log("message",message)
 
   let audios;
   let videos;
@@ -137,9 +138,26 @@ const getgroupmessage = async(req,res)=>{
     res.end()
 }
 
+////////////////////////////////  GET USER GROUPS ////////////////////////
+
+const usergroups = async (req,res)=>{
+  const getgroup = await group.find({
+    $or: [
+      { adminnumber: req.user.number },
+      { 'members.number': req.user.number }
+    ]
+  })
+  console.log("groups",getgroup )
+  res.status(200).json({status:true,message:"getd all groups",data:getgroup})
+
+}
+
+/////////////////////////  get spacific groups ////////////////////////
+
 module.exports = {
   creategroup,
   getgroups,
   sendmessageongroup,
   getgroupmessage,
+  usergroups,
 };

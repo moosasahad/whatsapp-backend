@@ -28,6 +28,8 @@ router
     .get('/getmessaeg/:recivernumber', Authmidilware,trycatch(messagecontroller.getmessages))
     .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
     .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
+    .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage))       
+
 
 
     // ---------------------------- group --------------------- //
@@ -36,6 +38,7 @@ router
     .get('/getgroup',Authmidilware,trycatch(Groupcontroller.getgroups ))
     .post('/sendmessageongroup', Authmidilware,messagefile.single('files'),trycatch(Groupcontroller.sendmessageongroup))
     .get('/getgroupmessage/:groupid',Authmidilware,trycatch(Groupcontroller.getgroupmessage))
+    .get("/usergroups", Authmidilware,trycatch(Groupcontroller.usergroups))
 
 
 

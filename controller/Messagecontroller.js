@@ -303,10 +303,20 @@ const searchcontatcs = async (req, res) => {
 
   res.status(200).json(contacts);
 };
+const deletemessage = async (req,res)=>{
+  console.log("senderid",req.params.id)  
+  const id = req.params.id; 
+  const findemessages = await messageschema.findOne({senderid:req.user.contactid})
+  const updatedMessages = findemessages.message.filter(item => item._id.toString() !== id);
+  findemessages.message = updatedMessages;
+  await findemessages.save();
+  res.status(200).json({status:true,message:"itemdeleted"})
+}
 
 module.exports = {
   message,
   getmessages,
   messagesenders,
   searchcontatcs,
+  deletemessage,
 };
