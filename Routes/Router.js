@@ -25,10 +25,15 @@ router
     //  ------------------------- message controller ----------------- //
 
     .post('/sendmessage', Authmidilware,messagefile.single('files'),trycatch(messagecontroller.message))
-    .get('/getmessaeg/:recivernumber', Authmidilware,trycatch(messagecontroller.getmessages))
+    .get('/getmessaeg/:id', Authmidilware,trycatch(messagecontroller.getmessages))
     .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
     .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
-    .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage))       
+    .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage)) 
+    // .post('/sendMessages', Authmidilware,trycatch(messagecontroller.sendMessage))   
+    // .get('/getMessages/:contactId', Authmidilware,trycatch(messagecontroller.getMessages))  
+    // .get('/getMessagedProfiles', Authmidilware,trycatch(messagecontroller.getMessagedUsers))     
+
+
 
 
 
