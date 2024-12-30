@@ -28,6 +28,7 @@ const contact = require("../model/ContactSchema");
 const path = require("path");
 const mongoose = require("mongoose");
 const User = require('../model/loginSchema')
+const group = require("../model/Groupschema")
 
 const message = async (req, res) => {
 
@@ -132,7 +133,7 @@ const messagesenders = async (req, res) => {
   const currentUserId = req.user.id;
 
   // Step 1: Find all user IDs the current user has messaged with
-  const messagedUserIds = await Message.aggregate([
+  const messagedUserIds = await messageschema.aggregate([
     {
       $match: {
         $or: [
@@ -155,17 +156,16 @@ const messagesenders = async (req, res) => {
     { $group: { _id: '$contactId' } }
   ]);
 
-  // Extract unique user IDs
+
   const userIds = messagedUserIds.map((item) => item._id);
 
   if (userIds.length === 0) {
     return res.status(200).json({ success: true, users: [] });
   }
 
-  // Step 2: Fetch user profiles
   const users = await User.find({ _id: { $in: userIds } }).populate({path:"profileimage",select:"profileimage"})
 
-  // Step 3: Send response
+ 
   res.status(200).json({status:true,message:"get all messsage senders", data:users});
   
 //   const finding = await messageschema.find({
@@ -228,19 +228,23 @@ const messagesenders = async (req, res) => {
 
 
 const searchcontatcs = async (req, res) => {
-  const { query } = req.query; // Get the search query from request query parameters
+  const { query } = req.query; 
 
   if (!query) {
     return res.status(400).json({ message: "Search query is required." });
   }
 
   const contacts = await contact.find({
-    userid: req.user.id,
-    $or: [
-      { name: { $regex: query, $options: "i" } },
-      { number: { $regex: query, $options: "i" } },
+    $and: [
+      { userid: req.user.id },
+      {
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { number: { $regex: query, $options: "i" } },
+        ],
+      },
     ],
-  });
+  }).populate("profileimage")
   
   if(contacts==[]){
    return res.status(400).json({status:false,message:"number not found",})
@@ -253,129 +257,88 @@ const searchcontatcs = async (req, res) => {
 
   res.status(200).json(contacts);
 };
+
+////////////////////////////////////  DELETE MESSAGES /////////////////////////////////////
 const deletemessage = async (req,res)=>{
   console.log("senderid",req.params.id)  
   const id = req.params.id; 
   console.log("id",id)
-  const findemessages = await messageschema.findByIdAndDelete({_id:id})
-  // const updatedMessages = findemessages.message.filter(item => item._id.toString() !== id);
-  // findemessages.message = updatedMessages;
+  const findemessages = await messageschema.findOneAndDelete({_id:id})
 
   res.status(200).json({status:true,message:"itemdeleted"})
 }
-//  //////////////////////////////// CHAT GPT MESSAGIN METHOD //////////////////////////////
+
+//////////////////////////////////////  STARING MESSAGE  //////////////////////////////
+
+const starmessages = async (req,res)=>{
+const id = req.params.id;
+console.log(id)
+const editstarfield = await messageschema.findOneAndUpdate({_id:id}, [{ $set: { star: { $not: "$star" } } }])
+res.status(200).json({message:"item stared"})
+}
 
 
-//  const Message = require('../model/message');
-// const Contact = require('../model/ContactSchema');
+//////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
-// const sendMessage = async (req, res) => {
-//   const { receiverNumber, text } = req.body;
-//   console.log("contactId",receiverNumber)           
-//   const senderid = req.user.id
+const getChatData = async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(400).json({ success: false, message: 'User not authenticated.' });
+  }
 
-//   try {
-//     // Check if the receiver exists
-//     const contact = await Contact.findOne({ userid: senderId, number: receiverNumber });
-//     if (!contact) {
-//       return res.status(403).json({ message: 'Receiver is not in your contacts.' });
-//     }
+  const currentUserId = req.user.id;
 
-//     const message = new Message({
-//       senderId,
-//       receiverId: contact.profileimage,
-//       text,
-//     });
+  try {
+    // Step 1: Find messaged users
+    const messagedUserIds = await messageschema.aggregate([
+      {
+        $match: {
+          $or: [
+            { senderid: new mongoose.Types.ObjectId(currentUserId) },
+            { reciverid: new mongoose.Types.ObjectId(currentUserId) }
+          ]
+        }
+      },
+      {
+        $project: {
+          contactId: {
+            $cond: {
+              if: { $eq: ['$senderid', new mongoose.Types.ObjectId(currentUserId)] },
+              then: '$reciverid',
+              else: '$senderid'
+            }
+          }
+        }
+      },
+      { $group: { _id: '$contactId' } }
+    ]);
 
-//     await message.save();
-//     res.status(201).json({ message: 'Message sent successfully.', message });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error.', error });
-//   }
-// };
+    const userIds = messagedUserIds.map((item) => item._id);
 
+    const users = userIds.length > 0
+      ? await User.find({ _id: { $in: userIds } }).populate({ path: "profileimage", select: "profileimage" })
+      : [];
 
-// ////////////////// FEATCH MESSAGE /////////////////////////
+    // Step 2: Find groups
+    const groups = await group.find({
+      $or: [
+        { adminnumber: req.user.number },
+        { 'members.number': req.user.number }
+      ]
+    });
 
-
-// // const Message = require('./models/Message');
-
-// const getMessages = async (req, res) => {
-//   const { contactId } = req.params;
-//   console.log("contactId",contactId)           
-//   const userId = req.user.id
-
-//   try {
-//     const messages = await Message.find({
-//       $or: [
-//         { senderId: userId, receiverId: contactId },
-//         { senderId: contactId, receiverId: userId },
-//       ],                  
-//     }).sort({ timestamp: 1 });
-
-//     res.status(200).json(messages);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error.', error });
-//   }
-// };
-
-// ///////////////////// GET MESSAGED PROFILES //////////////////////
-
-// const getMessagedUsers = async (req, res) => {
-//   try {
-//     // Validate user
-//     if (!req.user || !req.user.id) {
-//       return res.status(400).json({ success: false, message: 'User not authenticated.' });
-//     }
-
-//     const currentUserId = req.user.id;
-
-//     // Step 1: Find all user IDs the current user has messaged with
-//     const messagedUserIds = await Message.aggregate([
-//       {
-//         $match: {
-//           $or: [
-//             { senderId: new mongoose.Types.ObjectId(currentUserId) },
-//             { receiverId: new mongoose.Types.ObjectId(currentUserId) }
-//           ]
-//         }
-//       },
-//       {
-//         $project: {
-//           contactId: {
-//             $cond: {
-//               if: { $eq: ['$senderId', new mongoose.Types.ObjectId(currentUserId)] },
-//               then: '$receiverId',
-//               else: '$senderId'
-//             }
-//           }
-//         }
-//       },
-//       { $group: { _id: '$contactId' } }
-//     ]);
-
-//     // Extract unique user IDs
-//     const userIds = messagedUserIds.map((item) => item._id);
-
-//     if (userIds.length === 0) {
-//       return res.status(200).json({ success: true, users: [] });
-//     }
-
-//     // Step 2: Fetch user profiles
-//     const users = await User.find({ _id: { $in: userIds } }).select('name number profileimage');
-
-//     // Step 3: Send response
-//     res.status(200).json({
-//       success: true,
-//       users
-//     });
-//   } catch (error) {
-//     console.error('Error finding messaged users:', error);
-//     res.status(500).json({ success: false, message: 'Internal server error' });
-//   }
-// };
-
-
+    // Step 3: Combine data and send response
+    res.status(200).json({
+      success: true,
+      message: 'Fetched chat data successfully.',
+      data: {
+        users,
+        groups
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching chat data.', error: error.message });
+  }
+};
 
 
 
@@ -387,7 +350,7 @@ module.exports = {
   messagesenders,
   searchcontatcs,
   deletemessage,
-  // sendMessage,
-  // getMessages,
-  // getMessagedUsers,
+  starmessages,
+  getChatData
+
 };

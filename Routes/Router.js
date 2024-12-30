@@ -29,9 +29,10 @@ router
     .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
     .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
     .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage)) 
-    // .post('/sendMessages', Authmidilware,trycatch(messagecontroller.sendMessage))   
-    // .get('/getMessages/:contactId', Authmidilware,trycatch(messagecontroller.getMessages))  
-    // .get('/getMessagedProfiles', Authmidilware,trycatch(messagecontroller.getMessagedUsers))     
+    .patch('/starmessages/:id/messaeg/:_id', Authmidilware,trycatch(messagecontroller.starmessages)) 
+    .get('/getChatData', Authmidilware,trycatch(messagecontroller.getChatData))       
+
+
 
 
 
@@ -44,6 +45,10 @@ router
     .post('/sendmessageongroup', Authmidilware,messagefile.single('files'),trycatch(Groupcontroller.sendmessageongroup))
     .get('/getgroupmessage/:groupid',Authmidilware,trycatch(Groupcontroller.getgroupmessage))
     .get("/usergroups", Authmidilware,trycatch(Groupcontroller.usergroups))
+    .delete("/deletemessagegroupmessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.deletemessage))
+    .patch("/stargroupemessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.stargroupemessage))
+
+
 
 
 

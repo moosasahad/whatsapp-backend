@@ -9,7 +9,7 @@ const groupSchema = new mongoose.Schema(
     members: [{
       membersid:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Contact', 
+        ref: 'User', 
         required: true,
       },
       number:{type: String, required: true },
@@ -18,12 +18,13 @@ const groupSchema = new mongoose.Schema(
     ], 
     messages: [
       {
-        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', required: true }, 
+        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, 
         sendernumber:{type: String, required: true },
         text: { type: String },
         image: { type: String },
         audio: { type: String },    
         video:{ type: String },
+        star:{type:Boolean,default:false},
         date:{ type: Date, default: Date.now } 
       },
     ], 

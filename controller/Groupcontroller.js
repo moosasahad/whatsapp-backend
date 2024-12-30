@@ -1,7 +1,8 @@
 const group = require("../model/Groupschema");
 const contact = require("../model/ContactSchema");
 const user = require("../model/loginSchema");
-const path = require('path')
+const path = require('path');
+const { findOne } = require("../model/message");
 
 // ----------------------- creating group -------------------- \\
 const creategroup = async (req, res) => {
@@ -15,7 +16,7 @@ const creategroup = async (req, res) => {
       membersid: item.membersid,
       number: item.number,
     })),
-    admin: req.user.contactid,
+    admin: req.user.id,
   });
 
   const saevgroup = await newgroup.save();
@@ -59,7 +60,7 @@ const getgroups = async (req, res) => {
 
 const sendmessageongroup = async (req, res) => {
   const { groupid, message } = req.body;
-  console.log("message",message)
+  console.log("message",req.body)
 
   let audios;
   let videos;
@@ -98,7 +99,7 @@ const sendmessageongroup = async (req, res) => {
   const findgroup =await group.findOne({_id:groupid})
   console.log("findgroup",findgroup)
    findgroup.messages.push({
-    sender:req.user.contactid,
+    sender:req.user.id,
     sendernumber:req.user.number,
     text: message,
     image: images,
@@ -127,6 +128,9 @@ const getgroupmessage = async(req,res)=>{
         },
       })
       .populate({
+        path: "members.membersid",
+      })
+      .populate({
         path: "messages.sender",
   
         populate: {
@@ -152,7 +156,42 @@ const usergroups = async (req,res)=>{
 
 }
 
-/////////////////////////  get spacific groups ////////////////////////
+/////////////////////////  DELETE GROUP MESSAGE ////////////////////////
+const deletemessage = async (req,res)=>{
+  console.log("req.user,id",req.params)
+  const findegroup = await group.findOne({_id:req.params.id})
+  console.log("findegroup",findegroup)
+  if(!findegroup){
+    return res.status(400).json({status:false,message:"group not found"})
+  }
+
+ findegroup.messages = findegroup?.messages.filter((item)=>item._id.toString() !== req.params._id)
+
+  findegroup.save()
+  console.log("deletemessage",deletemessage)
+res.status(200).json({status:true,message:"message deleted"})
+}
+
+
+/////////////////////////////// START GROUP MESSAGE ///////////////////////////
+
+const stargroupemessage =async (req,res)=>{
+
+ const findegroup = await group.findOne({_id:req.params.id})
+
+ if(!findegroup){
+  return res.status(400).json({status:false,message:"group not found"})
+ }
+
+const findeandupdate = findegroup.messages?.find((item)=>item._id == req.params._id )
+if(!findeandupdate){
+  return res.status(400).json({status:false,message:"message not found id is incorect"})
+}
+ findeandupdate.star = !findeandupdate.star                
+ findegroup.save()
+ res.status(200).json({status:true,message:"starede succeses"})
+
+}
 
 module.exports = {
   creategroup,
@@ -160,4 +199,6 @@ module.exports = {
   sendmessageongroup,
   getgroupmessage,
   usergroups,
+  deletemessage,
+  stargroupemessage,
 };
