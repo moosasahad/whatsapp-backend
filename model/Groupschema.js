@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const groupSchema = new mongoose.Schema(
   {
-    groupName: { type: String, required: true }, 
+    groupName: { type: String, required: true,required: true }, 
     groupImage: { type: String,default: "https://res.cloudinary.com/dyp3vtpwa/image/upload/v1734500090/profile/hr5wtzlk4n2s6hibyhqu.png"}, 
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', required: true }, 
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, 
     adminnumber:{type: String, required: true },
     members: [{
       membersid:{

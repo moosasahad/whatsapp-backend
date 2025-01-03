@@ -7,6 +7,7 @@ const router = express.Router()
 const upload = require("../midilware/Fileuploadingmidilware")
 const messagefile = require('../midilware/messagefileupload')
 const Groupcontroller = require("../controller/Groupcontroller")
+const Statuscontroller = require("../controller/Statuscontroller")
 
 router
 
@@ -15,11 +16,11 @@ router
     .post('/',trycatch(logincontroller.otpgenarating))  
     .post('/send-otp',trycatch(logincontroller.otpverification))
     .post('/logout',Authmidilware,trycatch(logincontroller.logout))
-    .post('/adduserdetails',Authmidilware,upload.single('image'),trycatch(logincontroller.adduserdetails))
+    .patch('/adduserdetails',Authmidilware,upload.single('image'),trycatch(logincontroller.adduserdetails))
     .post('/savecontact',Authmidilware,trycatch(logincontroller.savecontacts))
     .get('/getallcontatc',Authmidilware,trycatch(logincontroller.getallcontacts))
     .get('/getspacificuser',Authmidilware,trycatch(logincontroller.getspacificuser))
-    .post('/updateprofile',Authmidilware,trycatch(logincontroller.updateprofile))
+    .patch('/updateprofile',Authmidilware,upload.single('image'),trycatch(logincontroller.updateprofile))
 
 
     //  ------------------------- message controller ----------------- //
@@ -29,7 +30,7 @@ router
     .get('/getallmessagers', Authmidilware,trycatch(messagecontroller.messagesenders))
     .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
     .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage)) 
-    .patch('/starmessages/:id/messaeg/:_id', Authmidilware,trycatch(messagecontroller.starmessages)) 
+    .patch('/starmessages/:id', Authmidilware,trycatch(messagecontroller.starmessages)) 
     .get('/getChatData', Authmidilware,trycatch(messagecontroller.getChatData))       
 
 
@@ -40,14 +41,22 @@ router
 
     // ---------------------------- group --------------------- //
 
-    .post('/creategroup',Authmidilware,trycatch(Groupcontroller.creategroup ))
+    .post('/creategroup',Authmidilware,upload.single('image'),trycatch(Groupcontroller.creategroup ))
     .get('/getgroup',Authmidilware,trycatch(Groupcontroller.getgroups ))
     .post('/sendmessageongroup', Authmidilware,messagefile.single('files'),trycatch(Groupcontroller.sendmessageongroup))
     .get('/getgroupmessage/:groupid',Authmidilware,trycatch(Groupcontroller.getgroupmessage))
     .get("/usergroups", Authmidilware,trycatch(Groupcontroller.usergroups))
     .delete("/deletemessagegroupmessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.deletemessage))
     .patch("/stargroupemessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.stargroupemessage))
+    .patch("/addmembersingroup/:id/:_id", Authmidilware,trycatch(Groupcontroller.addmembersingroup))
 
+
+/////////////////////// STATUS /////////////////////////
+
+    .post("/createStatus",Authmidilware,messagefile.single('files'),trycatch(Statuscontroller.createStatus))
+    .get("/getUserStatuses",Authmidilware,trycatch(Statuscontroller.getUserStatuses))
+    .get("/getContactStatuses",Authmidilware,trycatch(Statuscontroller.getContactStatuses))
+    .delete("/deleteStatus/:id",Authmidilware,trycatch(Statuscontroller.deleteStatus))
 
 
 

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 
 const client = require("twilio")(process.env.accoutnSID, process.env.authToken);
 
-//---------genarate otp using phone number------------------- //
+////////////////////////////////////// GENARATE OTP //////////////////////////////////
 
 const otpgenarating = async (req, res) => {
   console.log("number", req.body);
@@ -37,7 +37,7 @@ const otpgenarating = async (req, res) => {
 };
 
 
-// ----------------------  verify otp -------------------- //
+//////////////////////////////// VERIFY OTP /////////////////////////////
 
 const otpverification = async (req, res) => {
   const { otp, userNumber } = req.body;
@@ -115,8 +115,7 @@ const otpverification = async (req, res) => {
 
 };
 
-// ------------------------ logout controller ---------------------------------- // 
-
+////////////////////////////////// LOG OUT CONTROLLER  ///////////////////////////////////
 const logout = async (req,res)=>{
   res.clearCookie("token",{
     httpOnly:true,
@@ -127,21 +126,20 @@ const logout = async (req,res)=>{
 res.status(200).json({status:true,message:"Logout successfully"})
 }
 
-// ------------------ add user details in user profile ---------------- //
-
+//////////////////////////// ADD USER DETAILS IN USER PROFILE ///////////////////////
 
 const adduserdetails = async(req,res)=>{
   const {name} = req.body
   const image = req.file?.path
   const id = req.user.id
   console.log("cuurentuser",req.body)
-  if(!name|| !image){
-    return res.status(400).json({status:false,message:"input are emty"})
-  }
+  // if(!name & !image){
+  //   return res.status(400).json({status:false,message:"input are emty"})
+  // }
 
   const userse = await user.findOne({_id:id})
-  userse.name=name;
-  userse.profileimage=image
+  userse.name=name?name:userse.name;
+  userse.profileimage=image?image:userse.profileimage;
   const upadteuser = await userse.save()
   console.log("cuurentuser",upadteuser)
 
@@ -149,8 +147,7 @@ const adduserdetails = async(req,res)=>{
 }
 
 
-// --------------------- get all logined user profile --------------- //
-
+//////////////////////////////// GET ALL LOGINID USER PROFILE ///////////////////////
 
 const getspacificuser = async (req,res)=>{
   const userid = req.user.id;
@@ -159,8 +156,7 @@ const getspacificuser = async (req,res)=>{
 }
 
 
-// ---------------- save contact details  --------------------- //
-
+///////////////////////////////////// SAVE CONTACT DETAILS /////////////////////////////////
 
 const savecontacts = async (req,res,)=>{
 
@@ -189,7 +185,7 @@ const savecontacts = async (req,res,)=>{
 }
 
 
-// ------------------------- get all contacts --------------------- //
+/////////////////////////////// GET ALL CONTACTS ////////////////////////
 
 
 const getallcontacts = async (req,res)=>{
@@ -200,6 +196,10 @@ const getallcontacts = async (req,res)=>{
   res.status(200).json({status:true,message:"get all contatcs",data:filtercontact})
 }
 
+
+////////////////////////////// UPDATE PROFILE /////////////////////////
+
+
 const updateprofile = async (req,res)=>{
   const {name,about} = req.body;
   const image = req.file?.path;
@@ -207,9 +207,13 @@ const updateprofile = async (req,res)=>{
   console.log({name,about,image},req.body)
 
   const finduser =await user.findOne({_id:userid})
+  finduser.name=name?name:finduser.name;
+  finduser.about=about?about:finduser.about;
+  finduser.profileimage=image?image:finduser.profileimage ;  
+  const savefinduser = await finduser.save()
   console.log("finduser",finduser)
 
-  res.send("jhjkfdshfkjsdh")
+  res.status(200).json({status:true,message:"profile updated",data:savefinduser})
 }
 
 module.exports ={

@@ -7,22 +7,30 @@ const { findOne } = require("../model/message");
 // ----------------------- creating group -------------------- \\
 const creategroup = async (req, res) => {
   const { groupName, members } = req.body;
-  console.log("jhgfds", groupName, members);
+  const image = req.file?.path;
+console.log("groupName, members",groupName, members)
+console.log("image",image)
 
-  const newgroup = await new group({
-    groupName,
+const parsedMembers = typeof members === "string" ? JSON.parse(members) : members;
+console.log("parsedMembers",parsedMembers)
+
+if (!Array.isArray(parsedMembers)) {
+    return res.status(400).json({ error: "Members must be an array" });
+  }
+
+  const newgroup = new group({
+    groupName:groupName,
+    groupImage: image,
     adminnumber: req.user.number,
-    members: members.map((item) => ({
+    members: parsedMembers.map((item) => ({
       membersid: item.membersid,
       number: item.number,
     })),
     admin: req.user.id,
   });
 
-  const saevgroup = await newgroup.save();
-  res
-    .status(200)
-    .json({ status: true, message: "group crated", data: saevgroup });
+  const savedGroup = await newgroup.save();
+  res.status(200).json({ status: true, message: "Group created", data: savedGroup });
 };
 
 // --------------------------------- get groups ------------------------------- //
@@ -193,12 +201,41 @@ if(!findeandupdate){
 
 }
 
+  ////////////////////// ADD MEMBERSE IN EXISTING GROUP ///////////////////////////////////
+
+  const addmembersingroup =async (req,res) => {
+    const groupid = req.params._id;
+    const membersid = req.params.id;
+    console.log("groupid",groupid)
+    console.log("membersid",membersid)
+    const number =await contact.findOne({profileimage:membersid,userid:req.user.id});
+    console.log("number",number)
+    if(!number){
+      return res.status(400).json({status:false,messsage:"number not saved"})
+    }
+    const findgroup = await group.findOne({_id:groupid})
+    const exitingmember = findgroup.members.find((item)=>item.membersid == membersid )
+    console.log("exitingmember",exitingmember)
+    if(exitingmember){
+      return res.status(400).json({status:false,message:"this contact alredy this group"})
+    }
+  
+
+    findgroup.members.push({
+      membersid: membersid,
+    number: number.number,
+    })
+    findgroup.save()
+res.status(200).json({status:false,message:"contact saved",data:findgroup})
+  }
+
 module.exports = {
-  creategroup,
+  creategroup,  
   getgroups,
   sendmessageongroup,
   getgroupmessage,
   usergroups,
   deletemessage,
   stargroupemessage,
+  addmembersingroup,
 };

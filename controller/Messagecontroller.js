@@ -259,6 +259,7 @@ const searchcontatcs = async (req, res) => {
 };
 
 ////////////////////////////////////  DELETE MESSAGES /////////////////////////////////////
+
 const deletemessage = async (req,res)=>{
   console.log("senderid",req.params.id)  
   const id = req.params.id; 
@@ -272,13 +273,13 @@ const deletemessage = async (req,res)=>{
 
 const starmessages = async (req,res)=>{
 const id = req.params.id;
-console.log(id)
+console.log("SENDER ID",id)
 const editstarfield = await messageschema.findOneAndUpdate({_id:id}, [{ $set: { star: { $not: "$star" } } }])
 res.status(200).json({message:"item stared"})
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////// 
+/////////////////////////////////////////// GET CHAT DATA ///////////////////////////////////////////////////////////// 
 
 const getChatData = async (req, res) => {
   if (!req.user || !req.user.id) {
@@ -288,7 +289,6 @@ const getChatData = async (req, res) => {
   const currentUserId = req.user.id;
 
   try {
-    // Step 1: Find messaged users
     const messagedUserIds = await messageschema.aggregate([
       {
         $match: {
@@ -303,7 +303,7 @@ const getChatData = async (req, res) => {
           contactId: {
             $cond: {
               if: { $eq: ['$senderid', new mongoose.Types.ObjectId(currentUserId)] },
-              then: '$reciverid',
+              then: '$reciverid', 
               else: '$senderid'
             }
           }
@@ -314,11 +314,10 @@ const getChatData = async (req, res) => {
 
     const userIds = messagedUserIds.map((item) => item._id);
 
-    const users = userIds.length > 0
+    const users = userIds.length > 0 
       ? await User.find({ _id: { $in: userIds } }).populate({ path: "profileimage", select: "profileimage" })
       : [];
 
-    // Step 2: Find groups
     const groups = await group.find({
       $or: [
         { adminnumber: req.user.number },
@@ -326,7 +325,6 @@ const getChatData = async (req, res) => {
       ]
     });
 
-    // Step 3: Combine data and send response
     res.status(200).json({
       success: true,
       message: 'Fetched chat data successfully.',
