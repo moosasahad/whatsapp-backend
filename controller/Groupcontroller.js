@@ -8,11 +8,11 @@ const { findOne } = require("../model/message");
 const creategroup = async (req, res) => {
   const { groupName, members } = req.body;
   const image = req.file?.path;
-console.log("groupName, members",groupName, members)
-console.log("image",image)
+// console.log("groupName, members",groupName, members)
+// console.log("image",image)
 
 const parsedMembers = typeof members === "string" ? JSON.parse(members) : members;
-console.log("parsedMembers",parsedMembers)
+// console.log("parsedMembers",parsedMembers)
 
 if (!Array.isArray(parsedMembers)) {
     return res.status(400).json({ error: "Members must be an array" });
@@ -68,18 +68,18 @@ const getgroups = async (req, res) => {
 
 const sendmessageongroup = async (req, res) => {
   const { groupid, message } = req.body;
-  console.log("message",req.body)
+  // console.log("message",req.body)
 
   let audios;
   let videos;
   let images;
 
   const files = req.file?.path;
-  console.log("imagefile", files);
+  // console.log("imagefile", files);
 
   if (files) {
     const fileExtension = path.extname(files).toLowerCase();
-    console.log("File extension:", fileExtension, files);
+    // console.log("File extension:", fileExtension, files);
 
     if (
       fileExtension === ".png" ||
@@ -105,7 +105,7 @@ const sendmessageongroup = async (req, res) => {
 
 
   const findgroup =await group.findOne({_id:groupid})
-  console.log("findgroup",findgroup)
+  // console.log("findgroup",findgroup)
    findgroup.messages.push({
     sender:req.user.id,
     sendernumber:req.user.number,
@@ -125,7 +125,7 @@ const sendmessageongroup = async (req, res) => {
 
 const getgroupmessage = async(req,res)=>{
     const groupid = req.params.groupid;
-    console.log("groupid",groupid);
+    // console.log("groupid",groupid);
     const findgroup = await group.findOne({_id:groupid})
     .populate({
         path: "admin",
@@ -159,16 +159,16 @@ const usergroups = async (req,res)=>{
       { 'members.number': req.user.number }
     ]
   })
-  console.log("groups",getgroup )
+  // console.log("groups",getgroup )
   res.status(200).json({status:true,message:"getd all groups",data:getgroup})
 
 }
 
 /////////////////////////  DELETE GROUP MESSAGE ////////////////////////
 const deletemessage = async (req,res)=>{
-  console.log("req.user,id",req.params)
+  // console.log("req.user,id",req.params)
   const findegroup = await group.findOne({_id:req.params.id})
-  console.log("findegroup",findegroup)
+  // console.log("findegroup",findegroup)
   if(!findegroup){
     return res.status(400).json({status:false,message:"group not found"})
   }
@@ -176,7 +176,7 @@ const deletemessage = async (req,res)=>{
  findegroup.messages = findegroup?.messages.filter((item)=>item._id.toString() !== req.params._id)
 
   findegroup.save()
-  console.log("deletemessage",deletemessage)
+  // console.log("deletemessage",deletemessage)
 res.status(200).json({status:true,message:"message deleted"})
 }
 
@@ -206,16 +206,16 @@ if(!findeandupdate){
   const addmembersingroup =async (req,res) => {
     const groupid = req.params._id;
     const membersid = req.params.id;
-    console.log("groupid",groupid)
-    console.log("membersid",membersid)
+    // console.log("groupid",groupid)
+    // console.log("membersid",membersid)
     const number =await contact.findOne({profileimage:membersid,userid:req.user.id});
-    console.log("number",number)
+    // console.log("number",number)
     if(!number){
       return res.status(400).json({status:false,messsage:"number not saved"})
     }
     const findgroup = await group.findOne({_id:groupid})
     const exitingmember = findgroup.members.find((item)=>item.membersid == membersid )
-    console.log("exitingmember",exitingmember)
+    // console.log("exitingmember",exitingmember)
     if(exitingmember){
       return res.status(400).json({status:false,message:"this contact alredy this group"})
     }

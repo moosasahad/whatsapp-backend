@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
     params: {
         folder: "messagefile",
         allowed_formats: ["jpg", "png", "jpeg", "mp4", "mp3", "aac", "wav", "WebM"],
-        resource_type: "auto",  // Ensure this is set correctly
+        resource_type: "auto", 
     },
 });
 

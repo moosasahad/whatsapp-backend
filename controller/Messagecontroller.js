@@ -1,4 +1,4 @@
-// const io = require("../index"); // Import the io instance from index.js
+// const io = require("../index"); 
 
 // const sendmessage = async (req, res) => {
 
@@ -31,76 +31,67 @@ const User = require('../model/loginSchema')
 const group = require("../model/Groupschema")
 
 const message = async (req, res) => {
-
+  const io = req.app.get("io"); // Get the Socket.IO instance
   const { message, receivernumber } = req.body;
 
+  io.on("")
 
-  // if (!receivernumber) {
-  //   return res
-  //     .status(404)
-  //     .json({
-  //       status: false,
-  //       message: "receiver not found",
-  //       data: { message, receiverid },
-  //     });
-  // }
-  console.log("outside",req.body);
+  console.log("Received data:", req.body);
+
   let audios;
   let videos;
   let images;
 
-
-  const findnumber = await contact.findOne({                     
+  const findnumber = await contact.findOne({
     userid: req.user.id,
     number: receivernumber,
   });
 
-
-
   const files = req.file?.path;
-  console.log("dghsgfs", files);
+  console.log("Uploaded file path:", files);
 
   if (files) {
-    const fileExtension = path.extname(files).toLowerCase(); 
+    const fileExtension = path.extname(files).toLowerCase();
     console.log("File extension:", fileExtension, files);
 
-   
-    if (
-      fileExtension === ".png" ||
-      fileExtension === ".jpg" ||
-      fileExtension === ".jpeg"
-    ) {
+    if ([".png", ".jpg", ".jpeg"].includes(fileExtension)) {
       images = files;
     }
 
-    if (fileExtension === ".mp4" || fileExtension === ".mkv") {
+    if ([".mp4", ".mkv"].includes(fileExtension)) {
       videos = files;
     }
 
-
-    if (
-      fileExtension === ".webm" ||
-      fileExtension === ".mp3" ||
-      fileExtension === ".aac" ||
-      fileExtension === ".wav"
-    ) {
-      audios = files; 
+    if ([".webm", ".mp3", ".aac", ".wav"].includes(fileExtension)) {
+      audios = files;
     }
   }
 
- 
-    const savefirstmessage = new messageschema({
-      senderid: req.user.id,
-      reciverid: receivernumber,  
-          text: message,
-          image: images,
-          audio: audios,
-          video: videos,
-    
-    });
-    const savesavefirstmessage = await savefirstmessage.save();
-   res.status(200).json({status:true, message: " message sended", data: savesavefirstmessage });
-  
+  const savefirstmessage = new messageschema({
+    senderid: req.user.id,
+    reciverid: receivernumber,
+    text: message,
+    image: images,
+    audio: audios,
+    video: videos,
+  });
+
+  const savesavefirstmessage = await savefirstmessage.save();
+
+  // Emit the message to the receiver's room
+  console.log("Sending to room:", receivernumber);
+  io.to(receivernumber).emit("new_message", {
+    senderid: savesavefirstmessage.senderid,
+    reciverid: savesavefirstmessage.reciverid,
+    text: savesavefirstmessage.text,
+    image: savesavefirstmessage.image,
+    audio: savesavefirstmessage.audio,
+    video: savesavefirstmessage.video,
+  });
+
+  res
+    .status(200)
+    .json({ status: true, message: "Message sent", data: savesavefirstmessage });
 };
 
 ///////////////////////////// get spacifc messages ///////////////////////////
@@ -249,7 +240,7 @@ const searchcontatcs = async (req, res) => {
   if(contacts==[]){
    return res.status(400).json({status:false,message:"number not found",})
   }
-  console.log("asndmbas",contacts)
+  // console.log("asndmbas",contacts)
 
   if (contacts.length === 0) {
     return res.status(404).json({ message: "No contacts found." });
@@ -261,9 +252,9 @@ const searchcontatcs = async (req, res) => {
 ////////////////////////////////////  DELETE MESSAGES /////////////////////////////////////
 
 const deletemessage = async (req,res)=>{
-  console.log("senderid",req.params.id)  
+  // console.log("senderid",req.params.id)  
   const id = req.params.id; 
-  console.log("id",id)
+  // console.log("id",id)
   const findemessages = await messageschema.findOneAndDelete({_id:id})
 
   res.status(200).json({status:true,message:"itemdeleted"})
@@ -273,7 +264,7 @@ const deletemessage = async (req,res)=>{
 
 const starmessages = async (req,res)=>{
 const id = req.params.id;
-console.log("SENDER ID",id)
+// console.log("SENDER ID",id)
 const editstarfield = await messageschema.findOneAndUpdate({_id:id}, [{ $set: { star: { $not: "$star" } } }])
 res.status(200).json({message:"item stared"})
 }

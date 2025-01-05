@@ -190,7 +190,7 @@ const savecontacts = async (req,res,)=>{
 
 const getallcontacts = async (req,res)=>{
   const contatctes = await contact.find({userid:req.user.id}).populate("profileimage",'profileimage _id');
-  console.log("mesage",contatctes);
+  // console.log("mesage",contatctes);
   const filtercontact = contatctes.filter((item)=>item.number!==req.user.number)
   
   res.status(200).json({status:true,message:"get all contatcs",data:filtercontact})
