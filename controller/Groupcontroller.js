@@ -6,6 +6,7 @@ const { findOne } = require("../model/message");
 
 // ----------------------- creating group -------------------- \\
 const creategroup = async (req, res) => {
+
   const { groupName, members } = req.body;
   const image = req.file?.path;
 // console.log("groupName, members",groupName, members)
@@ -67,6 +68,8 @@ const getgroups = async (req, res) => {
 // -------------------------------------- sende message in group ----------------------------- //
 
 const sendmessageongroup = async (req, res) => {
+  const io = req.app.get("io");
+
   const { groupid, message } = req.body;
   // console.log("message",req.body)
 
@@ -115,6 +118,9 @@ const sendmessageongroup = async (req, res) => {
     video: videos,
 })
   await findgroup.save()
+ 
+  io.emit("res-group-message",findgroup)
+
 
   res.status(200).json({status:true,message:"message sended",data:findgroup})
 };
@@ -124,6 +130,8 @@ const sendmessageongroup = async (req, res) => {
 
 
 const getgroupmessage = async(req,res)=>{
+  const io = req.app.get("io");
+
     const groupid = req.params.groupid;
     // console.log("groupid",groupid);
     const findgroup = await group.findOne({_id:groupid})
@@ -146,8 +154,8 @@ const getgroupmessage = async(req,res)=>{
           select: "profileimage",
         },
       })
-    res.send(findgroup)
-    res.end()
+      io.emit("get-message",findgroup)
+    res.status(200).json({message:'get group messsage',findgroup})
 }
 
 ////////////////////////////////  GET USER GROUPS ////////////////////////
@@ -229,6 +237,20 @@ if(!findeandupdate){
 res.status(200).json({status:false,message:"contact saved",data:findgroup})
   }
 
+/////////////////////// EXIT GROUP ////////////////////////
+  const exitgroup = async (req,res)=>{
+    const findegroup = await group.findOne({_id:req.params.id})
+    if(!findegroup){
+      res.status(400).json({messaeg:"group not found"})
+    }
+    const updatedMembers = findegroup?.members.filter((item)=>item.membersid.toString() !== req.user.id)
+    console.log(updatedMembers,req.user.id)
+    findegroup.members = updatedMembers 
+    await findegroup.save()
+    res.status(200).json({message:"your exiting this group",findegroup})
+  
+  }
+
 module.exports = {
   creategroup,  
   getgroups,
@@ -238,4 +260,5 @@ module.exports = {
   deletemessage,
   stargroupemessage,
   addmembersingroup,
+  exitgroup,
 };

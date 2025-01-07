@@ -49,6 +49,8 @@ router
     .delete("/deletemessagegroupmessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.deletemessage))
     .patch("/stargroupemessage/:id/:_id", Authmidilware,trycatch(Groupcontroller.stargroupemessage))
     .patch("/addmembersingroup/:id/:_id", Authmidilware,trycatch(Groupcontroller.addmembersingroup))
+    .post("/exitgroup/:id", Authmidilware,trycatch(Groupcontroller.exitgroup))
+
 
 
 /////////////////////// STATUS /////////////////////////

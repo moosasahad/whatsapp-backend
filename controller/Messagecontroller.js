@@ -31,10 +31,10 @@ const User = require('../model/loginSchema')
 const group = require("../model/Groupschema")
 
 const message = async (req, res) => {
-  const io = req.app.get("io"); // Get the Socket.IO instance
+  const io = req.app.get("io");
   const { message, receivernumber } = req.body;
 
-  io.on("")
+  // io.on("")
 
   console.log("Received data:", req.body);
 
@@ -66,7 +66,6 @@ const message = async (req, res) => {
       audios = files;
     }
   }
-
   const savefirstmessage = new messageschema({
     senderid: req.user.id,
     reciverid: receivernumber,
@@ -78,25 +77,21 @@ const message = async (req, res) => {
 
   const savesavefirstmessage = await savefirstmessage.save();
 
-  // Emit the message to the receiver's room
-  console.log("Sending to room:", receivernumber);
-  io.to(receivernumber).emit("new_message", {
-    senderid: savesavefirstmessage.senderid,
-    reciverid: savesavefirstmessage.reciverid,
-    text: savesavefirstmessage.text,
-    image: savesavefirstmessage.image,
-    audio: savesavefirstmessage.audio,
-    video: savesavefirstmessage.video,
-  });
+  io.emit("newpreviousMessage",{savesavefirstmessage, reciver: savesavefirstmessage._id})
+
 
   res
     .status(200)
-    .json({ status: true, message: "Message sent", data: savesavefirstmessage });
+    .json({ status: true, message: "Message sent", data: savesavefirstmessage });             
 };
 
 ///////////////////////////// get spacifc messages ///////////////////////////
 
 const getmessages = async (req, res) => {
+  const io = req.app.get("io");
+io.on("getmessage",(data)=>{
+  console.log("getmessage",data)
+})
   const reciverprofileId = req.params.id;
   const userId = req.user.id;
 
@@ -109,7 +104,7 @@ if(!reciverprofileId){
       { senderid: reciverprofileId, reciverid: userId },
     ], 
   }) 
-
+io.emit("previousMessage",messages)
   res.status(200).json({ status: true, message: "get spacific user message", data: messages  });
 };
 

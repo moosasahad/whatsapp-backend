@@ -8,9 +8,9 @@ const client = require("twilio")(process.env.accoutnSID, process.env.authToken);
 ////////////////////////////////////// GENARATE OTP //////////////////////////////////
 
 const otpgenarating = async (req, res) => {
-  console.log("number", req.body);
+
   const { number } = req.body;
-  console.log("number in db",number)
+
 
   if (!number) {
     return res.status(404).json({status:false, message: "Number not found"});
@@ -23,7 +23,7 @@ const otpgenarating = async (req, res) => {
       channel: "sms",
     });
     
-  const findnumber = await user.findOne({ number: number });
+  const findnumber = await user.findOne({ number: number });  
   if (findnumber) {
     return res
       .status(200).json({status:true, message: "OTP sent and number added to the database",data: findnumber,otpResponse: response,  });

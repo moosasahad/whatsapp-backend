@@ -1,4 +1,5 @@
 const ContactSchema = require("../model/ContactSchema");
+const Groupschema = require("../model/Groupschema");
 const Status = require("../model/StatusSchema");
 
 
@@ -60,10 +61,12 @@ const deleteStatus = async (req, res) => {
     if (!status) {
       return res.status(404).json({ success: false, message: "Status not found or unauthorized" });
     }
-
+console.log("deleted status",status)
     res.status(200).json({ success: true, message: "Status deleted successfully" });
  
 };
+
+
 
 module.exports = {
   createStatus,
