@@ -8,6 +8,7 @@ const upload = require("../midilware/Fileuploadingmidilware")
 const messagefile = require('../midilware/messagefileupload')
 const Groupcontroller = require("../controller/Groupcontroller")
 const Statuscontroller = require("../controller/Statuscontroller")
+const Chataicontroller = require("../controller/Chataicontroller")
 
 router
 
@@ -31,7 +32,9 @@ router
     .get('/searchcontatcs', Authmidilware,trycatch(messagecontroller.searchcontatcs))       
     .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage)) 
     .patch('/starmessages/:id', Authmidilware,trycatch(messagecontroller.starmessages)) 
-    .get('/getChatData', Authmidilware,trycatch(messagecontroller.getChatData))       
+    .get('/getChatData', Authmidilware,trycatch(messagecontroller.getChatData)) 
+    .get('/allstardemessage', Authmidilware,trycatch(messagecontroller.staredmessage))       
+
 
 
 
@@ -61,6 +64,9 @@ router
     .delete("/deleteStatus/:id",Authmidilware,trycatch(Statuscontroller.deleteStatus))
 
 
+///////////////////////
+
+.post("/chatbotController", Authmidilware,trycatch(Chataicontroller.getChatBotResponse))
 
 
 

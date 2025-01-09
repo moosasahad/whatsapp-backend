@@ -29,7 +29,8 @@ const path = require("path");
 const mongoose = require("mongoose");
 const User = require('../model/loginSchema')
 const group = require("../model/Groupschema")
-
+const io = require("../socket/socket");
+const ContactSchema = require("../model/ContactSchema");
 const message = async (req, res) => {
   const io = req.app.get("io");
   const { message, receivernumber } = req.body;
@@ -77,36 +78,75 @@ const message = async (req, res) => {
 
   const savesavefirstmessage = await savefirstmessage.save();
 
-  io.emit("newpreviousMessage",{savesavefirstmessage, reciver: savesavefirstmessage._id})
+
+  io.to(req.user.id).emit("newpreviousMessage", savesavefirstmessage);    
+  io.to(receivernumber).emit("newpreviousMessage", savesavefirstmessage);    
 
 
   res
     .status(200)
     .json({ status: true, message: "Message sent", data: savesavefirstmessage });             
 };
-
 ///////////////////////////// get spacifc messages ///////////////////////////
-
 const getmessages = async (req, res) => {
   const io = req.app.get("io");
-io.on("getmessage",(data)=>{
-  console.log("getmessage",data)
-})
+  
+  // Get the receiver's profile ID and user ID from the request
   const reciverprofileId = req.params.id;
   const userId = req.user.id;
 
-if(!reciverprofileId){
-  return res.status(200).json({status:false,messagege:"reciverprofileId is undifined"})
-}
-  const messages = await messageschema.find({
-    $or: [
-      { senderid: userId, reciverid: reciverprofileId },
-      { senderid: reciverprofileId, reciverid: userId },
-    ], 
-  }) 
-io.emit("previousMessage",messages)
-  res.status(200).json({ status: true, message: "get spacific user message", data: messages  });
-};
+  if (!reciverprofileId) {
+    return res.status(400).json({ status: false, message: "Receiver profile ID is undefined" });
+  }
+
+
+    // Get the previous messages between the two users
+    const messages = await messageschema.find({
+      $or: [
+        { senderid: userId, reciverid: reciverprofileId },
+        { senderid: reciverprofileId, reciverid: userId }
+      ],
+    });
+
+    // Emit the previous messages only to the connected client who requested
+    io.to(userId).emit("messags spacific", messages);     
+
+    res.status(200).json({
+      status: true,
+      message: "Retrieved specific user messages",
+      data: messages
+    });
+  
+  }
+
+
+// Emit new message when received
+// const handleNewMessage = (socket, data) => {
+//   const { reciver, savesavefirstmessage } = data;
+  
+//   // Ensure that the message is sent to the correct receiver
+//   io.to(reciver).emit("newpreviousMessage", {
+//     reciver,
+//     savesavefirstmessage
+//   });
+// };
+
+// // Event listener for new messages from the client
+// io.on('connection', (socket) => {
+//   console.log('User connected: ', socket.id);
+  
+//   // Handle new message event
+//   socket.on('sendMessage', (data) => {
+//     console.log("Received new message:", data);
+//     handleNewMessage(socket, data);
+//   });
+
+//   // Handle disconnection
+//   socket.on('disconnect', () => {
+//     console.log('User disconnected');
+//   });
+// });
+
 
 ////////////////////////// get message sended profiles /////////////////////////////////
 const messagesenders = async (req, res) => {
@@ -325,6 +365,36 @@ const getChatData = async (req, res) => {
 };
 
 
+//////////////////////////////////////////// GET ALL STARD MESSAGES /////////////////////////////////
+
+const staredmessage =async (req,res)=>{
+   const contactid = await ContactSchema.find({ userid: req.user.id });
+
+
+   const profileid = contactid
+     .filter((item) => item.profileimage.toString() !== req.user.id.toString())
+     .map((item) => item.profileimage);
+
+
+   const findemessages = await messageschema.find({
+     $or: [
+       {
+         senderid: { $in: profileid.map((id) => new mongoose.Types.ObjectId(id)) },
+         reciverid: new mongoose.Types.ObjectId(req.user.id),
+         star: true 
+       },
+       {
+         senderid: new mongoose.Types.ObjectId(req.user.id),
+         reciverid: { $in: profileid.map((id) => new mongoose.Types.ObjectId(id)) },
+         star: true 
+       }
+     ]
+   }).populate("senderid").populate("reciverid")
+
+   res.status(200).json({status:true,message:"get al stared message",findemessages})
+}
+
+
 
 
 
@@ -335,6 +405,7 @@ module.exports = {
   searchcontatcs,
   deletemessage,
   starmessages,
-  getChatData
+  getChatData,
+  staredmessage
 
 };

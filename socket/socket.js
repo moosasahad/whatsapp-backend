@@ -9,7 +9,6 @@ const fs = require("fs")
 const app = express();
 
 const server = http.createServer(app);
-module.exports = { server, app, express };
 
 const io = new Server(server, {
   cors: {
@@ -21,110 +20,59 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // Client joins a room
-  socket.on("joinRooms", async (userid, user) => {
-    console.log("usr", userid.id, "    ", user._id);
-
-    //   socket.join(userid);
-    console.log(
-      ".........................................................................................................."
-    );
-    const reciverprofileId = userid.id;
-    const messages = await messageschema.find({   
-      $or: [
-        { senderid: user._id, reciverid: reciverprofileId },
-        { senderid: reciverprofileId, reciverid: user._id },
-      ],
-    });    
-    console.log(messages, "sssssssssssssss"); 
-
-    io.emit("previousMessage", messages);
+  socket.on("joinRoom", (userId) => {
+    console.log(`User joined room: ${userId}`);
+    socket.join(userId); // Join a room with the user ID
   });
 
-  // Handle incoming messages
-  socket.on("send_message", async (data) => {
-    console.log("Message received:", data);
+
   
-     const {receivernumber,message,files,usreid} = data;
-
-     if (files) {
-        // Extract MIME type from base64 data
-        const mimeType = files.data.match(/^data:(\w+\/\w+);base64,/)[1]; // e.g., "image/png"
-      
-        // Log the file type
-        console.log("MIME Type:", mimeType);
-      
-        // Check the file type
-        if (mimeType.startsWith("image/")) {
-          console.log("This is an image file.");
-        } else if (mimeType.startsWith("video/")) {
-          console.log("This is a video file.");
-        } else if (mimeType.startsWith("audio/")) {
-          console.log("This is an audio file.");
-        } else {
-          console.log("Unknown file type.");
-        }
-      
-        // Save the file
-        const base64Data = files.data.replace(/^data:\w+\/\w+;base64,/, "");
-        const buffer = Buffer.from(base64Data, "base64");
-        const filePath = path.join(__dirname, "uploads", files.name);
-      
-        fs.writeFile(filePath, buffer, (err) => {
-          if (err) {
-            console.error("Error saving file:", err);
-            return;
-          }
-          console.log(`File saved: ${filePath}`);
-        });
-      }
-      
-        console.log("jfhsdghfgsdhgfhjfd",files)
-        const savefirstmessage = new messageschema({
-            senderid: usreid,
-            reciverid: receivernumber,
-            text: message,
-            image: files && files.type.startsWith("image/") ? files : null,
-            audio: files && files.type.startsWith("audio/") ? files : null,
-            video: files && files.type.startsWith("video/") ? files : null,
-          });
-          
-        
-           
-    //   let audios;               
-    //   let videos;
-    //   let images;       
-
-    
-    //   if (files) {
-    //     const fileExtension = path.extname(files).toLowerCase();
-    //     console.log("File extension:", fileExtension, files);
-    
-    //     if ([".png", ".jpg", ".jpeg"].includes(fileExtension)) {
-    //       images = files;
-    //     }
-    
-    //     if ([".mp4", ".mkv"].includes(fileExtension)) {
-    //       videos = files;
-    //     }
-    
-    //     if ([".webm", ".mp3", ".aac", ".wav"].includes(fileExtension)) {
-    //       audios = files;
-    //     }
-    //   }
-    
-    
-    //   const savemessage = await savefirstmessage.save();
-    // console.log("previousMessage",savemessage)
-    // //   Emit the message to the receiver's room
-    // //   console.log("Sending to room:", receivernumber);
-    //   io.emit("newpreviousMessage",savemessage);
-    // io.to(data.room).emit("receive_message", data);                               
-  });
+    // Listen for the offer from the client
+    socket.on("offer", (offer, to) => {
+      console.log("Sending offer to:", to);
+      io.to(to).emit("offer", offer, socket.id);
+    });
+  
+    // Listen for the answer from the client
+    socket.on("answer", (answer, to) => {
+      console.log("Sending answer to:", to);
+      io.to(to).emit("answer", answer);
+    });
+  
+    // Listen for ICE candidates from the client
+    socket.on("ice-candidate", (candidate, to) => {
+      console.log("Sending ice-candidate to:", to);
+      io.to(to).emit("ice-candidate", candidate);
+    });
 
   // Handle disconnections
   socket.on("disconnect", () => {
     console.log("A user disconnected:", socket.id);
   });
 });
-app.set("io", io);
+
+
+// io.on('connection', (socket) => { 
+//     console.log("New user connected", socket.id);
+  
+//     // Listen for offer from the client
+//     socket.on('offer', (offer, to) => {
+//       io.to(to).emit('offer', offer);
+//     });
+  
+//     // Listen for answer from the client
+//     socket.on('answer', (answer, to) => {
+//       io.to(to).emit('answer', answer);
+//     });
+  
+//     // Listen for ICE candidates
+//     socket.on('ice-candidate', (candidate, to) => {
+//       io.to(to).emit('ice-candidate', candidate);
+//     });
+  
+//     socket.on('disconnect', () => {
+//       console.log('User disconnected');
+//     });
+//   });
+app.set("io", io); 
+module.exports = { server, app, express,io };
