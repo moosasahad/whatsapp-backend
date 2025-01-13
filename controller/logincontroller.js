@@ -94,8 +94,8 @@ const otpverification = async (req, res) => {
 
       res.cookie("token", usertoken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
+  secure: true,
+  sameSite: 'none',
         maxAge: 30 * 1 * 24 * 60 * 60 * 1000,
       });
       console.log("usertoken", usertoken);
@@ -119,8 +119,8 @@ const otpverification = async (req, res) => {
 
     res.cookie("token", usertoken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: 'none',
       maxAge: 30 * 1 * 24 * 60 * 60 * 1000,
     });
     console.log("usertoken", usertoken);

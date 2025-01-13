@@ -7,7 +7,8 @@ cloudinary.config({
     api_key:process.env.CLOUDINARY_API_KEY,
     api_secret:process.env.CLOUDINARY_API_SECRET
 })
-
+try{
+    
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
@@ -16,8 +17,10 @@ const storage = new CloudinaryStorage({
         resource_type: "auto", 
     },
 });
-
-
 const messageupload = multer({storage:storage})
-
 module.exports=messageupload
+console.log("hallow ...................")
+}catch(error){
+    console.log("message sendin midilware errro",error)
+}
+

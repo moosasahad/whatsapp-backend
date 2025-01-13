@@ -31,20 +31,27 @@ const User = require('../model/loginSchema')
 const group = require("../model/Groupschema")
 const io = require("../socket/socket");
 const ContactSchema = require("../model/ContactSchema");
+
+
+
 const message = async (req, res) => {
   const io = req.app.get("io");
+  console.log("jkhsajkhsajhsakjshajshkjfhjkhdknfhkdjkd5612425126")                                       
   const { message, receivernumber } = req.body;
+  if(!receivernumber || receivernumber=="undefined"){                                                                               
+    return res.status(400).json({status:false,message:"usernumber is requires"})    
+  }
 
-  // io.on("")
-
-  console.log("Received data:", req.body);
+  // io.on("") 
+//  
+  console.log("Received data:", receivernumber);
 
   let audios;
   let videos;
   let images;
 
   const findnumber = await contact.findOne({
-    userid: req.user.id,
+    userid: req.user.id,    
     number: receivernumber,
   });
 
@@ -394,7 +401,18 @@ const staredmessage =async (req,res)=>{
    res.status(200).json({status:true,message:"get al stared message",findemessages})
 }
 
+//////////////////// MESSAGE SEEN CONTROOLER /////////////////////
 
+const messageseen = async(req,res)=>{
+  const sender = req.params.id;
+  const reciver = req.user.id;
+
+  const seenmessage = await messageschema.updateMany( 
+  { senderid: new mongoose.Types.ObjectId(sender),reciverid: new mongoose.Types.ObjectId(reciver),status:"sent" },{$set:{status:"seen"}})
+
+  // console.log("seenmessage",seenmessage)
+  res.status(200).json({status:true,message:"message seend",seenmessage})
+}
 
 
 
@@ -406,6 +424,7 @@ module.exports = {
   deletemessage,
   starmessages,
   getChatData,
-  staredmessage
+  staredmessage,
+  messageseen
 
 };

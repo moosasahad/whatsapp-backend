@@ -9,6 +9,7 @@ const sendMessageSchema = new mongoose.Schema(
     image: { type: String },
     audio: { type: String },
     video: { type: String },
+    status: { type: String, default: "sent" },
     date: { type: Date, default: Date.now},
   },
   {

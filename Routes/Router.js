@@ -33,7 +33,9 @@ router
     .delete('/deletemessage/:id', Authmidilware,trycatch(messagecontroller.deletemessage)) 
     .patch('/starmessages/:id', Authmidilware,trycatch(messagecontroller.starmessages)) 
     .get('/getChatData', Authmidilware,trycatch(messagecontroller.getChatData)) 
-    .get('/allstardemessage', Authmidilware,trycatch(messagecontroller.staredmessage))       
+    .get('/allstardemessage', Authmidilware,trycatch(messagecontroller.staredmessage)) 
+    .post('/seenmessages/:id', Authmidilware,trycatch(messagecontroller.messageseen)) 
+ 
 
 
 
