@@ -8,7 +8,6 @@ const upload = require("../midilware/Fileuploadingmidilware")
 const messagefile = require('../midilware/messagefileupload')
 const Groupcontroller = require("../controller/Groupcontroller")
 const Statuscontroller = require("../controller/Statuscontroller")
-const Chataicontroller = require("../controller/Chataicontroller")
 
 router
 
@@ -68,7 +67,6 @@ router
 
 ///////////////////////
 
-.post("/chatbotController", Authmidilware,trycatch(Chataicontroller.getChatBotResponse))
 
 
 
