@@ -117,12 +117,34 @@ const sendmessageongroup = async (req, res) => {
     audio: audios,
     video: videos,
 })
-  await findgroup.save()
+await findgroup.save();
+const updatedGroup = await group
+      .findById(groupid)
+      .populate({
+        path: "admin",
+        populate: {
+          path: "profileimage",
+          select: "profileimage",
+        },
+      })
+      .populate({
+        path: "members.membersid",
+      })
+      .populate({
+        path: "messages.sender",
+        populate: {
+          path: "profileimage",
+          select: "profileimage",
+        },
+      });
+
+
+   
+ console.log(updatedGroup)
+  io.emit("res-group-message",updatedGroup)
  
-  io.emit("res-group-message",findgroup)
-
-
-  res.status(200).json({status:true,message:"message sended",data:findgroup})
+ 
+  res.status(200).json({status:true,message:"message sended",data:updatedGroup})
 };
 
 
