@@ -24,28 +24,14 @@ io.on("connection", (socket) => {
     console.log(`User joined room: ${userId}`);
     socket.join(userId); // Join a room with the user ID
   });
+ 
+  socket.on("joingrouproom", (userid) => {
+    console.log(`User joined group room: ${userid}`);
+    socket.join(userid); 
+  });
 
 
-  
-    // Listen for the offer from the client
-    socket.on("offer", (offer, to) => {
-      console.log("Sending offer to:", to);
-      io.to(to).emit("offer", offer, socket.id);
-    });
-  
-    // Listen for the answer from the client
-    socket.on("answer", (answer, to) => {
-      console.log("Sending answer to:", to);
-      io.to(to).emit("answer", answer);
-    });
-  
-    // Listen for ICE candidates from the client
-    socket.on("ice-candidate", (candidate, to) => {
-      console.log("Sending ice-candidate to:", to);
-      io.to(to).emit("ice-candidate", candidate);
-    });
-
-  // Handle disconnections
+ 
   socket.on("disconnect", () => {
     console.log("A user disconnected:", socket.id);
   });

@@ -1,27 +1,3 @@
-// const io = require("../index"); 
-
-// const sendmessage = async (req, res) => {
-
-//         const { message } = req.body;
-
-//         if (!message) {
-//             return res.status(400).json({ error: "Message is required" });
-//         }
-
-//         console.log("HTTP Message Received:", message);
-
-//         // Emit the message to all connected clients
-//         io.emit("receiveMessage", {
-//             sender: "Server",
-//             message: message
-//         });
-
-//         res.status(200).json({ success: true, message: "Message sent successfully" });
-// };
-
-// module.exports = {
-//     sendmessage,
-// };
 
 const messageschema = require("../model/message");
 const contact = require("../model/ContactSchema");
@@ -36,14 +12,12 @@ const ContactSchema = require("../model/ContactSchema");
 
 const message = async (req, res) => {
   const io = req.app.get("io");
-  console.log("jkhsajkhsajhsakjshajshkjfhjkhdknfhkdjkd5612425126")                                       
   const { message, receivernumber } = req.body;
   if(!receivernumber || receivernumber=="undefined"){                                                                               
     return res.status(400).json({status:false,message:"usernumber is requires"})    
   }
 
-  // io.on("") 
-//  
+ 
   console.log("Received data:", receivernumber);
 
   let audios;

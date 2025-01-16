@@ -108,8 +108,9 @@ const sendmessageongroup = async (req, res) => {
 
 
   const findgroup =await group.findOne({_id:groupid})
-  // console.log("findgroup",findgroup)
-   findgroup.messages.push({
+  const userid = req.user.id;
+
+  findgroup.messages.push({
     sender:req.user.id,
     sendernumber:req.user.number,
     text: message,
@@ -138,10 +139,11 @@ const updatedGroup = await group
         },
       });
 
+  io.to(userid).emit("res-group-message",updatedGroup)
+  io.to(userid).emit("res-group-message",updatedGroup)
 
-   
- console.log(updatedGroup)
-  io.emit("res-group-message",updatedGroup)
+  // io.to(userId).emit("messags spacific", messages);     
+
  
  
   res.status(200).json({status:true,message:"message sended",data:updatedGroup})
@@ -153,6 +155,7 @@ const updatedGroup = await group
 
 const getgroupmessage = async(req,res)=>{
   const io = req.app.get("io");
+  const userId = req.user.id;
 
     const groupid = req.params.groupid;
     // console.log("groupid",groupid);
@@ -176,7 +179,7 @@ const getgroupmessage = async(req,res)=>{
           select: "profileimage",
         },
       })
-      io.emit("get-message",findgroup)
+      io.to(userId).emit("get-message",findgroup)
     res.status(200).json({message:'get group messsage',findgroup})
 }
 
