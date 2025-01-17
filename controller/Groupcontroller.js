@@ -139,12 +139,11 @@ const updatedGroup = await group
         },
       });
 
-  io.to(userid).emit("res-group-message",updatedGroup)
-  io.to(userid).emit("res-group-message",updatedGroup)
+  // io.to(userid).emit("res-group-message",updatedGroup)
+
+  io.emit("res-group-message",updatedGroup)
 
   // io.to(userId).emit("messags spacific", messages);     
-
- 
  
   res.status(200).json({status:true,message:"message sended",data:updatedGroup})
 };
